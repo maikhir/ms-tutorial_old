@@ -21,7 +21,9 @@ import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.lang.reflect.Array;
 import java.math.BigDecimal;
+import java.util.List;
 
 import static net.bytebuddy.matcher.ElementMatchers.is;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -36,7 +38,7 @@ class ProductServiceApplicationTests {
 	public static final String NAME_IPHONE_13 = "iPhone 13";
 	public static final String DESCRIPTION_IS_IPHONE_13 = "description is iPhone 13";
 	public static final int PRICE_TEST = 1200;
-	public static final String EXPECTED_RESULT ="\"name\":\""+NAME_IPHONE_13+"\",\"description\":\""+DESCRIPTION_IS_IPHONE_13+"\",\"price\":"+PRICE_TEST+"}]";
+
 	@Autowired
 	private MockMvc mockMvc;
 	@Autowired
@@ -67,12 +69,18 @@ class ProductServiceApplicationTests {
 		ResultActions result = mockMvc.perform(MockMvcRequestBuilders.get("/api/product"))
 				.andExpect(status().isOk())
 				.andDo(print());
-		ProductResponse productResponse = new ProductResponse().builder()
+		ProductResponse expectedProductResponse = new ProductResponse().builder()
 				.name(NAME_IPHONE_13)
 				.description(DESCRIPTION_IS_IPHONE_13)
 				.price(BigDecimal.valueOf(PRICE_TEST))
 				.build();
-		Assertions.assertTrue(result.andReturn().getResponse().getContentAsString().endsWith(EXPECTED_RESULT)); //not the best option!
+
+		String responseAsString = result.andReturn().getResponse().getContentAsString();
+		ProductResponse response = objectMapper.readValue(responseAsString, ProductResponse[].class)[0];
+		Assertions.assertTrue(expectedProductResponse.getDescription().equals(response.getDescription()), "same Description");
+		Assertions.assertTrue(expectedProductResponse.getName().equals(response.getName()), "same name");
+		Assertions.assertTrue(expectedProductResponse.getPrice().equals(response.getPrice()), "same price" );
+
 	}
 
 	private ProductRequest getProductRequest() {
