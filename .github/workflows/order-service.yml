@@ -6,7 +6,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Java CI with Maven in product service
+name: Java CI with Maven in order service
 
 on:
   push:
